@@ -1,0 +1,6 @@
+Metric,Value
+AUC-ROC,0.931
+Accuracy,0.87
+Precision - Churn,0.74
+Recall - Churn,0.81
+F1-Score - Churn,0.78
