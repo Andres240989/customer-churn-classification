@@ -27,9 +27,9 @@ st.set_page_config(
 # ============================================================
 
 RISK_COLORS = {
-    "Bajo": "#2E9E5B",
-    "Medio": "#E8912D",
-    "Alto": "#D64545",
+    "Low": "#2E9E5B",
+    "Medium": "#E8912D",
+    "High": "#D64545",
 }
 
 
@@ -139,13 +139,13 @@ def load_customers(path="../data/df_test.csv"):
     def riesgo(probabilidad):
 
         if probabilidad > 0.70:
-            return "Alto"
+            return "High"
 
         elif probabilidad > 0.30:
-            return "Medio"
+            return "Medium"
 
         else:
-            return "Bajo"
+            return "Low"
 
     df["Nivel_Riesgo"] = df["Probabilidad_Churn"].apply(riesgo)
 
@@ -211,10 +211,10 @@ def risk_badge(level):
 # ============================================================
 
 st.sidebar.title("📉 Churn Analytics")
-st.sidebar.caption("B2B SaaS · Retention Intelligence")
+st.sidebar.caption("B2B SaaS · Customer Churn Risk Dashboard")
 
 page = st.sidebar.radio(
-    "Sección",
+    "Select Page",
     [
         "Overview",
         "Customer Detail",
@@ -223,6 +223,8 @@ page = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
+
+
 
 
 # ============================================================
@@ -234,7 +236,7 @@ if page == "Overview":
     st.title("Customer Churn Risk Overview")
 
     st.caption(
-        "Identifica clientes en riesgo y prioriza acciones de retención."
+        "Select a customer to view their details."
     )
 
     # ========================================================
@@ -243,12 +245,12 @@ if page == "Overview":
 
     with st.sidebar:
 
-        st.subheader("Filtros")
+        st.subheader("Filters")
 
         f_risk = st.multiselect(
             "Risk Level",
-            ["Alto", "Medio", "Bajo"],
-            default=["Alto", "Medio", "Bajo"]
+            ["High", "Medium", "Low"],
+            default=["High", "Medium", "Low"]
         )
 
         contract_options = sorted(
@@ -269,7 +271,7 @@ if page == "Overview":
             1.0,
             (0.0, 1.0),
             0.01,
-            help="Filtra por probabilidad mínima y máxima de churn."
+            help="Filter customers by predicted churn probability."
         )
 
     # ========================================================
@@ -300,17 +302,17 @@ if page == "Overview":
 
     c2.metric(
         "🔴 High Risk",
-        f"{(dff['Nivel_Riesgo'] == 'Alto').sum():,}"
+        f"{(dff['Nivel_Riesgo'] == 'High').sum():,}"
     )
 
     c3.metric(
         "🟠 Medium Risk",
-        f"{(dff['Nivel_Riesgo'] == 'Medio').sum():,}"
+        f"{(dff['Nivel_Riesgo'] == 'Medium').sum():,}"
     )
 
     c4.metric(
         "🟢 Low Risk",
-        f"{(dff['Nivel_Riesgo'] == 'Bajo').sum():,}"
+        f"{(dff['Nivel_Riesgo'] == 'Low').sum():,}"
     )
 
     st.markdown("")
@@ -323,7 +325,7 @@ if page == "Overview":
         dff["Nivel_Riesgo"]
         .value_counts()
         .reindex(
-            ["Bajo", "Medio", "Alto"],
+            ["Low", "Medium", "High"],
             fill_value=0
         )
         .rename_axis("Risk")
@@ -421,11 +423,11 @@ if page == "Overview":
 
         st.markdown(
             '<div class="section-sub">'
-            'Ordenados por probabilidad de churn '
-            '(mayor primero). Selecciona una fila '
-            'para ver el detalle.'
+            'Ordered by churn probability '
+            '(highest first). Select a row '
+            'to view the details.'
             '</div>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True  
         )
 
         table = (
@@ -455,6 +457,11 @@ if page == "Overview":
             )
         )
 
+        # Convertir probabilidad a porcentaje visible
+        table["Churn Probability"] = (
+        table["Churn Probability"] * 100
+        ).round(1).astype(str) + "%"
+
         event = st.dataframe(
             table,
             use_container_width=True,
@@ -464,13 +471,7 @@ if page == "Overview":
             selection_mode="single-row",
             column_config={
 
-                "Churn Probability":
-                    st.column_config.ProgressColumn(
-                        "Churn Probability",
-                        min_value=0.0,
-                        max_value=1.0,
-                        format="%.1%%"
-                    ),
+        
 
                 "Monthly Charges":
                     st.column_config.NumberColumn(
@@ -492,8 +493,8 @@ if page == "Overview":
             st.session_state.selected_customer = chosen
 
             st.info(
-                f"Cliente **{chosen}** seleccionado. "
-                f"Ve a **Customer Detail** para ver su perfil."
+                f"Customer **{chosen}** selected. "
+                f"Go to **Customer Detail** to view their profile."
             )
 
 
@@ -501,12 +502,13 @@ if page == "Overview":
 # 2. CUSTOMER DETAIL
 # ============================================================
 
+
 elif page == "Customer Detail":
 
     st.title("Customer Detail")
 
     st.caption(
-        "Perfil individual del cliente y su nivel de riesgo de churn."
+        "Individual customer profile and their churn risk level"
     )
 
     # ========================================================
@@ -537,7 +539,7 @@ elif page == "Customer Detail":
         idx = 0
 
     selected = st.selectbox(
-        "Buscar cliente",
+        "Select Customer",
         sorted_ids,
         index=idx
     )
@@ -718,7 +720,7 @@ elif page == "Customer Detail":
             unsafe_allow_html=True
         )
 
-        if level == "Alto":
+        if level == "High":
 
             st.error(
                 "**High churn risk**\n\n"
@@ -727,7 +729,7 @@ elif page == "Customer Detail":
                 "service improvement or personalized incentive."
             )
 
-        elif level == "Medio":
+        elif level == "Medium":
 
             st.warning(
                 "**Moderate churn risk**\n\n"
@@ -934,7 +936,7 @@ elif page == "Customer Detail":
         unsafe_allow_html=True
     )
 
-    if level == "Alto":
+    if level == "High":
 
         st.markdown(
             f"""
@@ -949,7 +951,7 @@ elif page == "Customer Detail":
             """
         )
 
-    elif level == "Medio":
+    elif level == "Medium":
 
         st.markdown(
             f"""
@@ -990,7 +992,7 @@ else:
     st.title("Model Performance")
 
     st.caption(
-        "Validación técnica del modelo de predicción de churn (CatBoost)."
+        "This section provides an overview of the model's performance metrics and their interpretation."
     )
 
     # ========================================================
@@ -1016,7 +1018,7 @@ else:
 
     m4.metric(
         "Churn F1-score",
-        f"{metrics.get('F1-Score - Churn', 0):.2f}"
+        f"{metrics.get('F1-Score - Churn', 0):.3f}"
     )
 
     st.markdown("")
@@ -1026,28 +1028,26 @@ else:
     # ========================================================
 
     st.info(
-        "💡 **¿Cómo interpretar esto?** "
-        "El modelo estima la probabilidad de que cada cliente "
-        "abandone el servicio. Los clientes se clasifican en "
-        "**Bajo** (≤30%), **Medio** (30–70%) y "
-        "**Alto** (>70%) según su probabilidad predicha."
+        "💡 **How to interpret this??** "
+        "The model estimates the probability of each customer"
+        "  churning. Customers are classified into Low (≤30%), Medium (30–70%), and High (>70%) based on their predicted probability."
     )
 
     # ========================================================
     # DETALLE DE MÉTRICAS
     # ========================================================
 
-    with st.expander("Detalle de métricas"):
+    with st.expander("Metric details"):
 
         st.markdown(
             f"""
-            | Métrica | Valor | Qué significa |
+            | Metric | Value | What it means |
             |---|---:|---|
-            | **AUC-ROC** | {metrics.get('AUC-ROC', 0):.3f} | Capacidad de distinguir entre clientes que se van y los que se quedan. |
-            | **Accuracy** | {metrics.get('Accuracy', 0):.0%} | Porcentaje total de predicciones correctas. |
-            | **Churn Recall** | {metrics.get('Recall - Churn', 0):.0%} | De los clientes que realmente se fueron, cuántos detectó el modelo. |
-            | **Churn Precision** | {metrics.get('Precision - Churn', 0):.0%} | De los clientes marcados como churn, cuántos efectivamente se fueron. |
-            | **Churn F1-score** | {metrics.get('F1-Score - Churn', 0):.2f} | Balance entre precisión y recall. |
+            | **AUC-ROC** | {metrics.get('AUC-ROC', 0):.3f} | Ability to distinguish between customers who churn and those who stay. |
+            | **Accuracy** | {metrics.get('Accuracy', 0):.0%} | Total percentage of correct predictions. |
+            | **Churn Recall** | {metrics.get('Recall - Churn', 0):.0%} | Of the customers who actually churned, how many the model detected. |
+            | **Churn Precision** | {metrics.get('Precision - Churn', 0):.0%} | Of the customers flagged as churned, how many actually left. |
+            | **Churn F1-score** | {metrics.get('F1-Score - Churn', 0):.2f} | Balance between precision and recall. |
             """
         )
 
