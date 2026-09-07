@@ -10,6 +10,10 @@ import plotly.graph_objects as go
 import streamlit as st
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+
+CUSTOMERS_PATH = BASE_DIR / "df_test.csv"
+METRICS_PATH = BASE_DIR / "model_metrics.csv"
 
 # ============================================================
 # CONFIGURACIÓN
@@ -97,9 +101,9 @@ st.markdown(
 # ============================================================
 
 @st.cache_data
-def load_customers(path="df_test.csv"):
+def load_customers():
 
-    df = pd.read_csv(path)
+    df = pd.read_csv(CUSTOMERS_PATH)
 
     # Customer ID
     df["customerid"] = df["customerid"].astype(str)
@@ -154,9 +158,9 @@ def load_customers(path="df_test.csv"):
 
 
 @st.cache_data
-def load_metrics(path="model_metrics.csv"):
+def load_metrics():
 
-    m = pd.read_csv(path)
+    m = pd.read_csv(METRICS_PATH)
 
     return dict(
         zip(
