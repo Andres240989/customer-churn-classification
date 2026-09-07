@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from pathlib import Path
 
 
 # ============================================================
@@ -96,7 +97,7 @@ st.markdown(
 # ============================================================
 
 @st.cache_data
-def load_customers(path="../data/df_test.csv"):
+def load_customers(path="df_test.csv"):
 
     df = pd.read_csv(path)
 
@@ -153,7 +154,7 @@ def load_customers(path="../data/df_test.csv"):
 
 
 @st.cache_data
-def load_metrics(path="../data/model_metrics.csv"):
+def load_metrics(path="model_metrics.csv"):
 
     m = pd.read_csv(path)
 
